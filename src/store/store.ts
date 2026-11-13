@@ -82,6 +82,7 @@ CREATE TRIGGER IF NOT EXISTS messages_au AFTER UPDATE ON messages BEGIN
   INSERT INTO messages_fts(rowid, body, transcript) VALUES (new.rowid, new.body, coalesce(new.transcript, ''));
 END;
 
+CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 CREATE TABLE IF NOT EXISTS lid_map (lid TEXT PRIMARY KEY, pn TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS contacts (
   jid TEXT PRIMARY KEY,
@@ -346,6 +347,41 @@ export class Store implements IngestSink {
       : 'SELECT * FROM messages WHERE id = ? ORDER BY ts DESC LIMIT 1';
     const args = chatJid ? [id, this.canonical(chatJid)] : [id];
     return this.db.prepare(sql).get(...args) as MessageRow | undefined;
+  }
+
+  // ---------- Vocaux et alertes ----------
+
+  getMeta(key: string): string | null {
+    const row = this.db.prepare('SELECT value FROM meta WHERE key = ?').get(key) as { value: string } | undefined;
+    return row?.value ?? null;
+  }
+
+  setMeta(key: string, value: string | null): void {
+    if (value === null) this.db.prepare('DELETE FROM meta WHERE key = ?').run(key);
+    else this.db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)').run(key, value);
+  }
+
+  /** Vocaux à transcrire, du plus récent au plus ancien. */
+  voicesToTranscribe(opts: { since?: number; chatJid?: string; limit?: number; retryFailed?: boolean }): MessageRow[] {
+    const statuses = opts.retryFailed ? "('pending', 'failed')" : "('pending')";
+    const args: (string | number)[] = [opts.since ?? 0];
+    let sql = `SELECT * FROM messages WHERE type = 'voice' AND deleted_at IS NULL
+               AND transcript_status IN ${statuses} AND ts >= ?`;
+    if (opts.chatJid) {
+      sql += ' AND chat_jid = ?';
+      args.push(this.canonical(opts.chatJid));
+    }
+    sql += ' ORDER BY ts DESC LIMIT ?';
+    args.push(opts.limit ?? 10);
+    return this.db.prepare(sql).all(...args) as unknown as MessageRow[];
+  }
+
+  setTranscript(chatJid: string, id: string, status: TranscriptStatus, text?: string, error?: string): void {
+    this.db
+      .prepare(
+        'UPDATE messages SET transcript_status = ?, transcript = ?, transcript_error = ? WHERE chat_jid = ? AND id = ?',
+      )
+      .run(status, text ?? null, error ?? null, chatJid, id);
   }
 
   // ---------- Questions des outils ----------

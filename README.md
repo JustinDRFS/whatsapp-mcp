@@ -17,7 +17,7 @@ Le service se connecte comme un appareil lié (comme WhatsApp Web), recopie les 
 |---|---|
 | 1. Connexion et lecture des événements | faite |
 | 2. Base SQLite et recherche | faite |
-| 3. Transcription des vocaux | à faire |
+| 3. Transcription des vocaux | faite (à brancher sur une vraie clé OpenAI au déploiement) |
 | 4. Outils MCP et serveur HTTP | à faire |
 
 ## Commandes
