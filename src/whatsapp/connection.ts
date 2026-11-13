@@ -5,7 +5,8 @@
 // qu'aucun fichier du dossier src n'en contient.
 
 import { rm } from 'node:fs/promises';
-import makeWASocket, { Browsers, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import pino from 'pino';
+import makeWASocket, { Browsers, DisconnectReason, useMultiFileAuthState, type WASocket } from '@whiskeysockets/baileys';
 import { attachIngest, type Log } from './ingest.js';
 import type { IngestSink } from './types.js';
 
@@ -39,6 +40,10 @@ export class WhatsAppConnection {
   private stopped = false;
   private timer?: NodeJS.Timeout;
   private end?: () => void;
+  /** Socket courant, pour retélécharger un média. */
+  socket?: WASocket;
+  /** Appelé à chaque ouverture de session (lecture des groupes…). */
+  onOpen?: (sock: WASocket) => Promise<void> | void;
 
   constructor(private readonly opts: ConnectionOptions) {}
 
@@ -66,7 +71,10 @@ export class WhatsAppConnection {
       // Ne jamais apparaître « en ligne » : on ne fait que lire.
       markOnlineOnConnect: false,
       syncFullHistory: true,
+      // Le journal interne de Baileys peut contenir des messages : on le coupe, on a le nôtre.
+      logger: pino({ level: 'silent' }),
     });
+    this.socket = sock;
     this.end = () => sock.end(undefined);
 
     sock.ev.on('creds.update', saveCreds);
@@ -84,6 +92,7 @@ export class WhatsAppConnection {
         this.state.lastOpenAt = Math.floor(Date.now() / 1000);
         this.state.reconnectAttempts = 0;
         this.log('connexion : ouverte');
+        void this.onOpen?.(sock);
       }
       if (u.connection === 'close') {
         const code = (u.lastDisconnect?.error as { output?: { statusCode?: number } } | undefined)?.output

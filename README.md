@@ -18,7 +18,21 @@ Le service se connecte comme un appareil lié (comme WhatsApp Web), recopie les 
 | 1. Connexion et lecture des événements | faite |
 | 2. Base SQLite et recherche | faite |
 | 3. Transcription des vocaux | faite (à brancher sur une vraie clé OpenAI au déploiement) |
-| 4. Outils MCP et serveur HTTP | à faire |
+| 4. Outils MCP et serveur HTTP | faite |
+
+## Outils MCP (lecture seule)
+
+`status`, `list_active_chats`, `search_chats`, `export_chat`, `search_messages`, `transcribe_voice_notes`, `get_attachment`. Sorties en lignes ou tableaux à tabulations, dates en heure de Paris.
+
+## Variables d'environnement
+
+| Variable | Rôle |
+|---|---|
+| `MCP_TOKEN` | Jeton de Claude, 64 caractères hexadécimaux (`openssl rand -hex 32`) |
+| `ADMIN_PASSWORD` | Mot de passe de la page `/admin` (QR d'appairage), 16 caractères au moins |
+| `OPENAI_API_KEY` | Clé OpenAI pour les vocaux (facultative : sans elle, pas de transcription) |
+| `DATA_DIR` | Dossier de la base et des identifiants WhatsApp (`/data` par défaut) |
+| `PUBLIC_HOST` | Nom public du serveur, active la protection DNS rebinding |
 
 ## Commandes
 
