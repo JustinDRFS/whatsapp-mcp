@@ -41,3 +41,16 @@ npm install
 npm test        # tests, sans connexion à WhatsApp
 npm run build
 ```
+
+## Déploiement (VPS)
+
+```bash
+git clone git@github.com:JustinDRFS/whatsapp-mcp.git && cd whatsapp-mcp
+cp deploy/env.example .env && chmod 600 .env   # puis remplir .env
+mkdir -p data && sudo chown 1000:1000 data     # l'utilisateur « node » du conteneur
+docker compose up -d --build
+docker compose logs -f app                     # journal, sans contenu de message
+```
+
+Puis ouvrir `https://<PUBLIC_HOST>/admin` et scanner le QR depuis WhatsApp > Réglages > Appareils connectés.
+Connecteur claude.ai : URL `https://<PUBLIC_HOST>/mcp`, sans connexion, en-tête `Authorization: Bearer <MCP_TOKEN>`.

@@ -64,7 +64,7 @@ describe('outils MCP', () => {
   it('status signale une session tombée en tête (piège n° 5)', async () => {
     expect(await textOf('status')).toMatch(/^session\topen/m);
     state = { status: 'logged_out', reconnectAttempts: 0 };
-    expect((await textOf('status')).split('\n')[0]).toContain('SESSION WHATSAPP NON CONNECTÉE');
+    expect((await textOf('status')).split('\n')[0]).toContain('SESSION WHATSAPP DÉCONNECTÉE');
   });
 
   it('list_active_chats renvoie un tableau compact avec la colonne retenue', async () => {

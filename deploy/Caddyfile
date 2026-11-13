@@ -1,0 +1,17 @@
+# Le portier : certificat https automatique, puis tout est transmis au service.
+# Si Let's Encrypt refuse (ovh.net est partagé par beaucoup de clients), Caddy passe par ZeroSSL.
+{
+	email {$CADDY_EMAIL}
+}
+
+{$PUBLIC_HOST} {
+	encode gzip
+	reverse_proxy app:8080
+	log {
+		output stdout
+		# Pas d'en-tête Authorization dans les journaux.
+		format filter {
+			request>headers>Authorization delete
+		}
+	}
+}

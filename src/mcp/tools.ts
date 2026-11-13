@@ -74,7 +74,9 @@ export function buildServer(deps: ToolDeps): McpServer {
       const c = deps.connection();
       const s = store.status();
       const alerts: string[] = [];
-      if (c.status !== 'open') alerts.push(`SESSION WHATSAPP NON CONNECTÉE (${c.status}) : rescanner le QR sur /admin`);
+      if (c.status === 'waiting_qr' || c.status === 'logged_out')
+        alerts.push('SESSION WHATSAPP DÉCONNECTÉE : rescanner le QR sur /admin (Réglages > Appareils connectés)');
+      else if (c.status !== 'open') alerts.push(`SESSION WHATSAPP EN RECONNEXION (${c.reconnectAttempts} essais)`);
       if (store.getMeta(CREDIT_ALERT)) alerts.push('CRÉDIT OPENAI ÉPUISÉ : vocaux en pause');
       if (!deps.voices) alerts.push('transcription désactivée (pas de clé OpenAI)');
       const lines = [
