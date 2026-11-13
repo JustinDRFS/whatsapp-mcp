@@ -16,7 +16,7 @@ Le service se connecte comme un appareil lié (comme WhatsApp Web), recopie les 
 | Pièce | État |
 |---|---|
 | 1. Connexion et lecture des événements | faite |
-| 2. Base SQLite et recherche | à faire |
+| 2. Base SQLite et recherche | faite |
 | 3. Transcription des vocaux | à faire |
 | 4. Outils MCP et serveur HTTP | à faire |
 
